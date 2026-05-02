@@ -32,7 +32,7 @@ export default function Onboarding() {
     }
     try {
       const result = await generateStore.mutateAsync({ data: { description } });
-      setGenerated(result);
+      setGenerated(result as any);
       setForm(f => ({ ...f, name: result.name, slug: result.slug }));
       setStep(1);
     } catch {

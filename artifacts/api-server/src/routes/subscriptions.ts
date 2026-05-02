@@ -1,9 +1,9 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { subscriptionsTable, PLAN_LIMITS, PLANS, type Plan } from "@workspace/db/schema/subscriptions";
-import { storesTable } from "@workspace/db/schema/stores";
-import { productsTable } from "@workspace/db/schema/products";
-import { ordersTable } from "@workspace/db/schema/orders";
+import { subscriptionsTable, PLAN_LIMITS, PLANS, type Plan } from "@workspace/db";
+import { storesTable } from "@workspace/db";
+import { productsTable } from "@workspace/db";
+import { ordersTable } from "@workspace/db";
 import { requireAuth } from "../middlewares/requireAuth.js";
 import { eq, and, count } from "drizzle-orm";
 

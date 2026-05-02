@@ -111,6 +111,11 @@ import Orders from "@/pages/orders";
 import OrderDetail from "@/pages/order-detail";
 import Settings from "@/pages/settings";
 import Storefront from "@/pages/storefront";
+import Subscription from "@/pages/subscription";
+import AiTools from "@/pages/ai-tools";
+import Referrals from "@/pages/referrals";
+import Growth from "@/pages/growth";
+import AdminPanel from "@/pages/admin";
 
 function HomeRedirect() {
   return (
@@ -169,6 +174,21 @@ function Router() {
       </Route>
       <Route path="/settings">
         <ProtectedRoute component={Settings} />
+      </Route>
+      <Route path="/subscription">
+        <ProtectedRoute component={Subscription} />
+      </Route>
+      <Route path="/ai-tools">
+        <ProtectedRoute component={AiTools} />
+      </Route>
+      <Route path="/referrals">
+        <ProtectedRoute component={Referrals} />
+      </Route>
+      <Route path="/growth">
+        <ProtectedRoute component={Growth} />
+      </Route>
+      <Route path="/admin">
+        <ProtectedRoute component={AdminPanel} />
       </Route>
 
       {/* Public storefront */}

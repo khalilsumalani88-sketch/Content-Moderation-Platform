@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { referralsTable, referralCodesTable } from "@workspace/db/schema/referrals";
-import { subscriptionsTable } from "@workspace/db/schema/subscriptions";
+import { referralsTable, referralCodesTable } from "@workspace/db";
+import { subscriptionsTable } from "@workspace/db";
 import { requireAuth } from "../middlewares/requireAuth.js";
 import { eq, sql } from "drizzle-orm";
 import { randomBytes } from "node:crypto";

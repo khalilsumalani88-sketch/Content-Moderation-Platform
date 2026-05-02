@@ -4,7 +4,6 @@ import { db, storesTable } from "@workspace/db";
 import {
   CreateStoreBody,
   UpdateMyStoreBody,
-  GetStoreBySlugParams,
 } from "@workspace/api-zod";
 import { requireAuth } from "../middlewares/requireAuth";
 
@@ -100,13 +99,13 @@ router.post("/stores/generate", requireAuth, async (req: Request, res: Response)
 });
 
 router.get("/stores/:slug", async (req: Request, res: Response): Promise<void> => {
-  const params = GetStoreBySlugParams.safeParse(req.params);
-  if (!params.success) {
-    res.status(400).json({ error: params.error.message });
+  const slug = req.params.slug;
+  if (!slug) {
+    res.status(400).json({ error: "Slug is required" });
     return;
   }
 
-  const [store] = await db.select().from(storesTable).where(eq(storesTable.slug, params.data.slug));
+  const [store] = await db.select().from(storesTable).where(eq(storesTable.slug, slug));
   if (!store) {
     res.status(404).json({ error: "Store not found" });
     return;

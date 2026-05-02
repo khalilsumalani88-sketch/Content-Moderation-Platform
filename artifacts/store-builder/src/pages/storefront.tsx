@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useLocation } from "wouter";
-import { useGetStoreBySlug, useListPublicProducts, useListPublicCategories, useCreateOrder } from "@workspace/api-client-react";
+import { useGetPublicStore, useListPublicProducts, useListPublicCategories, useCreateOrder } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -27,7 +27,7 @@ export default function Storefront() {
   const [checkoutForm, setCheckoutForm] = useState({ name: "", phone: "", notes: "" });
   const [checkoutStep, setCheckoutStep] = useState<"cart" | "checkout">("cart");
 
-  const { data: store, isLoading: storeLoading, isError: storeError } = useGetStoreBySlug(slug ?? "");
+  const { data: store, isLoading: storeLoading, isError: storeError } = useGetPublicStore(slug ?? "");
   const { data: products } = useListPublicProducts(slug ?? "", search || selectedCategory ? { search: search || undefined, category: selectedCategory || undefined } : undefined);
   const { data: categories } = useListPublicCategories(slug ?? "");
   const createOrder = useCreateOrder();

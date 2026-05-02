@@ -1,6 +1,6 @@
 import { useState } from "react";
-import DashboardLayout from "./layout";
-import { useToast } from "@/components/ui/use-toast";
+import DashboardLayout from "@/components/layout";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,22 +10,22 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles, DollarSign, Image, Copy, Loader2, Check } from "lucide-react";
-import { setBaseUrl } from "@workspace/api-client-react";
+import { useAuth } from "@clerk/react";
 
 const basePath = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
 
-async function apiFetch(path: string, body: object) {
-  const res = await fetch(`${basePath}/api${path}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${await getToken()}` },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
-}
-
-async function getToken(): Promise<string> {
-  return (window as any).__clerkToken ?? "";
+function useApiFetch() {
+  const { getToken } = useAuth();
+  return async function apiFetch(path: string, body: object) {
+    const token = await getToken();
+    const res = await fetch(`${basePath}/api${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token ?? ""}` },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+  };
 }
 
 function CopyButton({ text }: { text: string }) {
@@ -46,6 +46,7 @@ function DescriptionGenerator() {
   const [result, setResult] = useState<{ description: string; shortDescription: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const apiFetch = useApiFetch();
 
   async function handleGenerate() {
     if (!form.productName) { toast({ title: "Product name required", variant: "destructive" }); return; }
@@ -120,6 +121,7 @@ function PricingSuggester() {
   const [result, setResult] = useState<{ suggestedPrice: number; priceRange: { min: number; max: number }; reasoning: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const apiFetch = useApiFetch();
 
   async function handleSuggest() {
     if (!form.productName) { toast({ title: "Product name required", variant: "destructive" }); return; }
@@ -191,6 +193,7 @@ function ImageEnhancer() {
   const [result, setResult] = useState<{ imageUrl: string; b64_json: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const apiFetch = useApiFetch();
 
   async function handleEnhance() {
     if (!form.productName) { toast({ title: "Product name required", variant: "destructive" }); return; }

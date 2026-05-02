@@ -1,7 +1,7 @@
 import { useState } from "react";
-import DashboardLayout from "./layout";
+import DashboardLayout from "@/components/layout";
 import { useGetMySubscription, useListPlans, useGetUsageLimits, useUpgradePlan } from "@workspace/api-client-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
