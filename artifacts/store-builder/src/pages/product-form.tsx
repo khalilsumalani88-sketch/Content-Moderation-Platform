@@ -1,5 +1,5 @@
 import DashboardLayout from "@/components/layout";
-import { useListCategories, useCreateProduct, useGetProduct, useUpdateProduct, getListProductsQueryKey, getGetProductQueryKey } from "@workspace/api-client-react";
+import { useListCategories, useCreateProduct, useGetProduct, useUpdateProduct, useGetMyStore, getListProductsQueryKey, getGetProductQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { useState, useEffect } from "react";
@@ -9,7 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Store } from "lucide-react";
+import { Link } from "wouter";
 
 interface ProductFormValues {
   name: string;
@@ -38,6 +39,7 @@ export default function ProductForm({ isEdit = false }: { isEdit?: boolean }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  const { isError: noStore, isLoading: storeLoading } = useGetMyStore();
   const { data: existing, isLoading: loadingProduct } = useGetProduct(id, {
     query: { enabled: isEdit && !!id, queryKey: getGetProductQueryKey(id) }
   });
@@ -92,6 +94,23 @@ export default function ProductForm({ isEdit = false }: { isEdit?: boolean }) {
   };
 
   const isPending = createProduct.isPending || updateProduct.isPending;
+
+  if (!storeLoading && noStore) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center py-24 text-center">
+          <Store className="w-14 h-14 text-muted-foreground/40 mb-4" />
+          <h2 className="text-xl font-bold mb-2">No store yet</h2>
+          <p className="text-muted-foreground text-sm mb-6 max-w-xs">
+            You need to create your store before adding products. It only takes a minute!
+          </p>
+          <Link href="/onboarding">
+            <Button className="gap-2">Create Your Store</Button>
+          </Link>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>

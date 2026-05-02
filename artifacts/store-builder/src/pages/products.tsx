@@ -6,15 +6,18 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Pencil, Trash2, Package, Image } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Package, Image, Store } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Products() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
-  const { data: store } = useGetMyStore();
-  const { data: products, isLoading } = useListProducts(search || category ? { search: search || undefined, category: category || undefined } : undefined);
-  const { data: categories } = useListCategories();
+  const { data: store, isLoading: storeLoading, isError: noStore } = useGetMyStore();
+  const { data: products, isLoading } = useListProducts(
+    store ? (search || category ? { search: search || undefined, category: category || undefined } : undefined) : undefined,
+    { query: { enabled: !!store } as any }
+  );
+  const { data: categories } = useListCategories({ query: { enabled: !!store } as any });
   const deleteProduct = useDeleteProduct();
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -31,6 +34,21 @@ export default function Products() {
       toast({ title: "Failed to delete product", variant: "destructive" });
     }
   };
+
+  if (!storeLoading && noStore) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center py-24 text-center">
+          <Store className="w-14 h-14 text-muted-foreground/40 mb-4" />
+          <h2 className="text-xl font-bold mb-2">No store yet</h2>
+          <p className="text-muted-foreground text-sm mb-6 max-w-xs">You need to create your store before adding products. It only takes a minute!</p>
+          <Link href="/onboarding">
+            <Button className="gap-2"><Plus className="w-4 h-4" /> Create Your Store</Button>
+          </Link>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
