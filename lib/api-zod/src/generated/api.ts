@@ -71,6 +71,8 @@ export const CreateStoreBody = zod.object({
   description: zod.string().nullish(),
   whatsappNumber: zod.string(),
   currency: zod.string().optional(),
+  logoUrl: zod.string().nullish(),
+  bannerUrl: zod.string().nullish(),
   theme: zod.string().optional(),
 });
 
@@ -88,10 +90,10 @@ export const GenerateStoreResponse = zod.object({
   categories: zod.array(zod.string()),
   sampleProducts: zod.array(
     zod.object({
-      name: zod.string(),
-      price: zod.number(),
-      category: zod.string(),
-      description: zod.string(),
+      name: zod.string().optional(),
+      price: zod.number().optional(),
+      category: zod.string().optional(),
+      description: zod.string().optional(),
     }),
   ),
 });
@@ -99,11 +101,11 @@ export const GenerateStoreResponse = zod.object({
 /**
  * @summary Get a public store by slug
  */
-export const GetStoreBySlugParams = zod.object({
+export const GetPublicStoreParams = zod.object({
   slug: zod.coerce.string(),
 });
 
-export const GetStoreBySlugResponse = zod.object({
+export const GetPublicStoreResponse = zod.object({
   id: zod.number(),
   name: zod.string(),
   slug: zod.string(),
@@ -113,14 +115,16 @@ export const GetStoreBySlugResponse = zod.object({
   logoUrl: zod.string().nullish(),
   bannerUrl: zod.string().nullish(),
   theme: zod.string(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
 });
 
 /**
- * @summary List all products for the current user's store
+ * @summary List the current user's products
  */
 export const ListProductsQueryParams = zod.object({
-  category: zod.coerce.string().optional(),
   search: zod.coerce.string().optional(),
+  category: zod.coerce.string().optional(),
 });
 
 export const ListProductsResponseItem = zod.object({
@@ -211,15 +215,15 @@ export const DeleteProductParams = zod.object({
 });
 
 /**
- * @summary List products on a public storefront
+ * @summary List public products for a store
  */
 export const ListPublicProductsParams = zod.object({
   slug: zod.coerce.string(),
 });
 
 export const ListPublicProductsQueryParams = zod.object({
-  category: zod.coerce.string().optional(),
   search: zod.coerce.string().optional(),
+  category: zod.coerce.string().optional(),
 });
 
 export const ListPublicProductsResponseItem = zod.object({
@@ -265,7 +269,7 @@ export const DeleteCategoryParams = zod.object({
 });
 
 /**
- * @summary List categories on a public storefront
+ * @summary List public categories for a store
  */
 export const ListPublicCategoriesParams = zod.object({
   slug: zod.coerce.string(),
@@ -310,7 +314,7 @@ export const ListOrdersResponseItem = zod.object({
 export const ListOrdersResponse = zod.array(ListOrdersResponseItem);
 
 /**
- * @summary Create an order (from storefront)
+ * @summary Create a new order (public)
  */
 export const CreateOrderBody = zod.object({
   storeId: zod.number(),
@@ -387,7 +391,7 @@ export const UpdateOrderStatusResponse = zod.object({
 });
 
 /**
- * @summary Get dashboard statistics for the current user's store
+ * @summary Get dashboard statistics
  */
 export const GetDashboardStatsResponse = zod.object({
   totalOrders: zod.number(),
@@ -424,7 +428,7 @@ export const GetRecentOrdersResponseItem = zod.object({
 export const GetRecentOrdersResponse = zod.array(GetRecentOrdersResponseItem);
 
 /**
- * @summary Get top selling products
+ * @summary Get top products by sales
  */
 export const GetTopProductsResponseItem = zod.object({
   productId: zod.number(),
@@ -433,3 +437,275 @@ export const GetTopProductsResponseItem = zod.object({
   totalRevenue: zod.number(),
 });
 export const GetTopProductsResponse = zod.array(GetTopProductsResponseItem);
+
+/**
+ * @summary Get the current user's subscription
+ */
+export const GetMySubscriptionResponse = zod.object({
+  id: zod.number(),
+  userId: zod.string(),
+  plan: zod.string(),
+  status: zod.string(),
+  currentPeriodStart: zod.coerce.date().nullish(),
+  currentPeriodEnd: zod.coerce.date().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary List all available plans
+ */
+export const ListPlansResponseItem = zod.object({
+  id: zod.string(),
+  name: zod.string(),
+  price: zod.number(),
+  currency: zod.string(),
+  productLimit: zod.number(),
+  orderLimit: zod.number(),
+  storeLimit: zod.number(),
+  features: zod.array(zod.string()),
+});
+export const ListPlansResponse = zod.array(ListPlansResponseItem);
+
+/**
+ * @summary Upgrade subscription plan
+ */
+export const UpgradePlanBody = zod.object({
+  plan: zod.string(),
+});
+
+export const UpgradePlanResponse = zod.object({
+  id: zod.number(),
+  userId: zod.string(),
+  plan: zod.string(),
+  status: zod.string(),
+  currentPeriodStart: zod.coerce.date().nullish(),
+  currentPeriodEnd: zod.coerce.date().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Get current usage vs plan limits
+ */
+export const GetUsageLimitsResponse = zod.object({
+  plan: zod.string(),
+  products: zod.object({
+    used: zod.number(),
+    limit: zod.number(),
+  }),
+  orders: zod.object({
+    used: zod.number(),
+    limit: zod.number(),
+  }),
+  stores: zod.object({
+    used: zod.number(),
+    limit: zod.number(),
+  }),
+});
+
+/**
+ * @summary Generate AI product description
+ */
+export const GenerateProductDescriptionBody = zod.object({
+  productName: zod.string(),
+  category: zod.string().nullish(),
+  keywords: zod.string().nullish(),
+  tone: zod.enum(["professional", "casual", "luxury", "fun"]).optional(),
+});
+
+export const GenerateProductDescriptionResponse = zod.object({
+  description: zod.string(),
+  shortDescription: zod.string(),
+});
+
+/**
+ * @summary Get AI pricing suggestions
+ */
+export const GetPricingSuggestionBody = zod.object({
+  productName: zod.string(),
+  category: zod.string().nullish(),
+  description: zod.string().nullish(),
+  currency: zod.string(),
+});
+
+export const GetPricingSuggestionResponse = zod.object({
+  suggestedPrice: zod.number(),
+  priceRange: zod.object({
+    min: zod.number(),
+    max: zod.number(),
+  }),
+  reasoning: zod.string(),
+});
+
+/**
+ * @summary Generate an enhanced/professional product image
+ */
+export const EnhanceProductImageBody = zod.object({
+  productName: zod.string(),
+  category: zod.string().nullish(),
+  style: zod.enum(["clean_white", "lifestyle", "studio", "minimal"]).optional(),
+});
+
+export const EnhanceProductImageResponse = zod.object({
+  imageUrl: zod.string(),
+  b64_json: zod.string(),
+});
+
+/**
+ * @summary Get platform-wide statistics (admin only)
+ */
+export const GetAdminStatsResponse = zod.object({
+  totalStores: zod.number(),
+  totalProducts: zod.number(),
+  totalOrders: zod.number(),
+  totalRevenue: zod.number(),
+  freeUsers: zod.number(),
+  proUsers: zod.number(),
+  businessUsers: zod.number(),
+  newStoresThisMonth: zod.number(),
+  newOrdersThisMonth: zod.number(),
+});
+
+/**
+ * @summary List all stores (admin only)
+ */
+export const AdminListStoresQueryParams = zod.object({
+  page: zod.coerce.number().optional(),
+  limit: zod.coerce.number().optional(),
+  search: zod.coerce.string().optional(),
+});
+
+export const AdminListStoresResponse = zod.object({
+  stores: zod.array(
+    zod.object({
+      id: zod.number(),
+      userId: zod.string(),
+      name: zod.string(),
+      slug: zod.string(),
+      whatsappNumber: zod.string(),
+      plan: zod.string(),
+      productCount: zod.number(),
+      orderCount: zod.number(),
+      createdAt: zod.coerce.date(),
+    }),
+  ),
+  total: zod.number(),
+  page: zod.number(),
+  limit: zod.number(),
+});
+
+/**
+ * @summary Update a store's subscription plan (admin only)
+ */
+export const AdminUpdateStorePlanParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const AdminUpdateStorePlanBody = zod.object({
+  plan: zod.string(),
+});
+
+export const AdminUpdateStorePlanResponse = zod.object({
+  id: zod.number(),
+  userId: zod.string(),
+  plan: zod.string(),
+  status: zod.string(),
+  currentPeriodStart: zod.coerce.date().nullish(),
+  currentPeriodEnd: zod.coerce.date().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Get multi-store analytics (admin only)
+ */
+export const GetAdminAnalyticsResponse = zod.object({
+  revenueByDay: zod.array(
+    zod.object({
+      date: zod.string(),
+      revenue: zod.number(),
+      orders: zod.number(),
+    }),
+  ),
+  topStores: zod.array(
+    zod.object({
+      storeId: zod.number(),
+      storeName: zod.string(),
+      revenue: zod.number(),
+      orders: zod.number(),
+    }),
+  ),
+  planDistribution: zod.object({
+    free: zod.number(),
+    pro: zod.number(),
+    business: zod.number(),
+  }),
+});
+
+/**
+ * @summary Get or create the current user's referral code
+ */
+export const GetMyReferralCodeResponse = zod.object({
+  code: zod.string(),
+  totalReferrals: zod.number(),
+  successfulReferrals: zod.number(),
+  referralUrl: zod.string(),
+});
+
+/**
+ * @summary Get referral statistics
+ */
+export const GetReferralStatsResponse = zod.object({
+  code: zod.string(),
+  totalReferrals: zod.number(),
+  successfulReferrals: zod.number(),
+  pendingReferrals: zod.number(),
+  rewardsPending: zod.number(),
+});
+
+/**
+ * @summary Apply a referral code
+ */
+export const ApplyReferralCodeBody = zod.object({
+  code: zod.string(),
+});
+
+export const ApplyReferralCodeResponse = zod.object({
+  success: zod.boolean(),
+  message: zod.string(),
+  reward: zod.string().nullish(),
+});
+
+/**
+ * @summary Generate a QR code for the store
+ */
+export const GetQrCodeResponse = zod.object({
+  svg: zod.string(),
+  url: zod.string(),
+});
+
+/**
+ * @summary Get shareable store link with UTM params
+ */
+export const GetShareLinkResponse = zod.object({
+  url: zod.string(),
+  whatsappUrl: zod.string(),
+  twitterUrl: zod.string(),
+  facebookUrl: zod.string(),
+});
+
+/**
+ * @summary Generate a WhatsApp broadcast message
+ */
+export const SendBroadcastBody = zod.object({
+  type: zod.enum(["promotion", "new_product", "announcement"]),
+  message: zod.string(),
+  productIds: zod.array(zod.number()).optional(),
+});
+
+export const SendBroadcastResponse = zod.object({
+  whatsappUrl: zod.string(),
+  message: zod.string(),
+  characterCount: zod.number(),
+});

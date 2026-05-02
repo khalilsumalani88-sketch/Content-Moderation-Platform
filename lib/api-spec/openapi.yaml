@@ -20,6 +20,17 @@ tags:
     description: Category management
   - name: dashboard
     description: Dashboard analytics
+  - name: subscriptions
+    description: Subscription plan management
+  - name: ai
+    description: AI-powered features
+  - name: admin
+    description: Platform admin operations
+  - name: referrals
+    description: Referral system
+  - name: growth
+    description: Growth tools (QR, sharing, broadcasts)
+
 paths:
   /healthz:
     get:
@@ -102,7 +113,7 @@ paths:
               $ref: "#/components/schemas/GenerateStoreBody"
       responses:
         "200":
-          description: Store config generated
+          description: Generated store configuration
           content:
             application/json:
               schema:
@@ -110,7 +121,7 @@ paths:
 
   /stores/{slug}:
     get:
-      operationId: getStoreBySlug
+      operationId: getPublicStore
       tags: [stores]
       summary: Get a public store by slug
       parameters:
@@ -137,27 +148,23 @@ paths:
     get:
       operationId: listProducts
       tags: [products]
-      summary: List all products for the current user's store
+      summary: List the current user's products
       parameters:
-        - name: category
-          in: query
-          required: false
-          schema:
-            type: string
         - name: search
           in: query
-          required: false
+          schema:
+            type: string
+        - name: category
+          in: query
           schema:
             type: string
       responses:
         "200":
-          description: Products list
+          description: List of products
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Product"
+                $ref: "#/components/schemas/ProductList"
     post:
       operationId: createProduct
       tags: [products]
@@ -195,7 +202,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Product"
         "404":
-          description: Not found
+          description: Product not found
           content:
             application/json:
               schema:
@@ -241,32 +248,28 @@ paths:
     get:
       operationId: listPublicProducts
       tags: [products]
-      summary: List products on a public storefront
+      summary: List public products for a store
       parameters:
         - name: slug
           in: path
           required: true
           schema:
             type: string
-        - name: category
-          in: query
-          required: false
-          schema:
-            type: string
         - name: search
           in: query
-          required: false
+          schema:
+            type: string
+        - name: category
+          in: query
           schema:
             type: string
       responses:
         "200":
-          description: Products list
+          description: List of products
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Product"
+                $ref: "#/components/schemas/ProductList"
 
   /categories:
     get:
@@ -275,13 +278,11 @@ paths:
       summary: List categories for the current user's store
       responses:
         "200":
-          description: Categories list
+          description: List of categories
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Category"
+                $ref: "#/components/schemas/CategoryList"
     post:
       operationId: createCategory
       tags: [categories]
@@ -319,7 +320,7 @@ paths:
     get:
       operationId: listPublicCategories
       tags: [categories]
-      summary: List categories on a public storefront
+      summary: List public categories for a store
       parameters:
         - name: slug
           in: path
@@ -328,13 +329,11 @@ paths:
             type: string
       responses:
         "200":
-          description: Categories
+          description: List of categories
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Category"
+                $ref: "#/components/schemas/CategoryList"
 
   /orders:
     get:
@@ -344,22 +343,19 @@ paths:
       parameters:
         - name: status
           in: query
-          required: false
           schema:
             type: string
       responses:
         "200":
-          description: Orders list
+          description: List of orders
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Order"
+                $ref: "#/components/schemas/OrderList"
     post:
       operationId: createOrder
       tags: [orders]
-      summary: Create an order (from storefront)
+      summary: Create a new order (public)
       requestBody:
         required: true
         content:
@@ -392,12 +388,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Order"
-        "404":
-          description: Not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
 
   /orders/{id}/status:
     patch:
@@ -428,10 +418,10 @@ paths:
     get:
       operationId: getDashboardStats
       tags: [dashboard]
-      summary: Get dashboard statistics for the current user's store
+      summary: Get dashboard statistics
       responses:
         "200":
-          description: Dashboard stats
+          description: Statistics
           content:
             application/json:
               schema:
@@ -448,15 +438,13 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Order"
+                $ref: "#/components/schemas/OrderList"
 
   /dashboard/top-products:
     get:
       operationId: getTopProducts
       tags: [dashboard]
-      summary: Get top selling products
+      summary: Get top products by sales
       responses:
         "200":
           description: Top products
@@ -466,6 +454,295 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/TopProduct"
+
+  # ─── Subscriptions ───────────────────────────────────────────────────────
+  /subscriptions/me:
+    get:
+      operationId: getMySubscription
+      tags: [subscriptions]
+      summary: Get the current user's subscription
+      responses:
+        "200":
+          description: Subscription found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Subscription"
+
+  /subscriptions/plans:
+    get:
+      operationId: listPlans
+      tags: [subscriptions]
+      summary: List all available plans
+      responses:
+        "200":
+          description: List of plans
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PlanInfo"
+
+  /subscriptions/upgrade:
+    post:
+      operationId: upgradePlan
+      tags: [subscriptions]
+      summary: Upgrade subscription plan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpgradePlanBody"
+      responses:
+        "200":
+          description: Plan upgraded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Subscription"
+
+  /subscriptions/limits:
+    get:
+      operationId: getUsageLimits
+      tags: [subscriptions]
+      summary: Get current usage vs plan limits
+      responses:
+        "200":
+          description: Usage limits
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsageLimits"
+
+  # ─── AI Features ─────────────────────────────────────────────────────────
+  /ai/generate-description:
+    post:
+      operationId: generateProductDescription
+      tags: [ai]
+      summary: Generate AI product description
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateDescriptionBody"
+      responses:
+        "200":
+          description: Generated description
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerateDescriptionResponse"
+
+  /ai/pricing-suggestion:
+    post:
+      operationId: getPricingSuggestion
+      tags: [ai]
+      summary: Get AI pricing suggestions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PricingSuggestionBody"
+      responses:
+        "200":
+          description: Pricing suggestion
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PricingSuggestionResponse"
+
+  /ai/enhance-image:
+    post:
+      operationId: enhanceProductImage
+      tags: [ai]
+      summary: Generate an enhanced/professional product image
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EnhanceImageBody"
+      responses:
+        "200":
+          description: Enhanced image as base64
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnhanceImageResponse"
+
+  # ─── Admin ────────────────────────────────────────────────────────────────
+  /admin/stats:
+    get:
+      operationId: getAdminStats
+      tags: [admin]
+      summary: Get platform-wide statistics (admin only)
+      responses:
+        "200":
+          description: Admin statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStats"
+
+  /admin/stores:
+    get:
+      operationId: adminListStores
+      tags: [admin]
+      summary: List all stores (admin only)
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of stores
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStoreList"
+
+  /admin/stores/{id}/plan:
+    patch:
+      operationId: adminUpdateStorePlan
+      tags: [admin]
+      summary: Update a store's subscription plan (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminUpdatePlanBody"
+      responses:
+        "200":
+          description: Plan updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Subscription"
+
+  /admin/analytics:
+    get:
+      operationId: getAdminAnalytics
+      tags: [admin]
+      summary: Get multi-store analytics (admin only)
+      responses:
+        "200":
+          description: Analytics data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAnalytics"
+
+  # ─── Referrals ────────────────────────────────────────────────────────────
+  /referrals/my-code:
+    get:
+      operationId: getMyReferralCode
+      tags: [referrals]
+      summary: Get or create the current user's referral code
+      responses:
+        "200":
+          description: Referral code
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReferralCode"
+
+  /referrals/stats:
+    get:
+      operationId: getReferralStats
+      tags: [referrals]
+      summary: Get referral statistics
+      responses:
+        "200":
+          description: Referral stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReferralStats"
+
+  /referrals/apply:
+    post:
+      operationId: applyReferralCode
+      tags: [referrals]
+      summary: Apply a referral code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApplyReferralBody"
+      responses:
+        "200":
+          description: Referral applied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplyReferralResponse"
+
+  # ─── Growth Tools ─────────────────────────────────────────────────────────
+  /growth/qr-code:
+    get:
+      operationId: getQrCode
+      tags: [growth]
+      summary: Generate a QR code for the store
+      responses:
+        "200":
+          description: QR code as SVG
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QrCodeResponse"
+
+  /growth/share-link:
+    get:
+      operationId: getShareLink
+      tags: [growth]
+      summary: Get shareable store link with UTM params
+      responses:
+        "200":
+          description: Share link info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShareLinkResponse"
+
+  /growth/broadcast:
+    post:
+      operationId: sendBroadcast
+      tags: [growth]
+      summary: Generate a WhatsApp broadcast message
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BroadcastBody"
+      responses:
+        "200":
+          description: Broadcast message ready
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BroadcastResponse"
 
 components:
   schemas:
@@ -549,6 +826,12 @@ components:
           type: ["string", "null"]
         theme:
           type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
       required:
         - id
         - name
@@ -556,26 +839,8 @@ components:
         - whatsappNumber
         - currency
         - theme
-
-    CreateStoreBody:
-      type: object
-      properties:
-        name:
-          type: string
-        slug:
-          type: string
-        description:
-          type: ["string", "null"]
-        whatsappNumber:
-          type: string
-        currency:
-          type: string
-        theme:
-          type: string
-      required:
-        - name
-        - slug
-        - whatsappNumber
+        - createdAt
+        - updatedAt
 
     UpdateStoreBody:
       type: object
@@ -594,6 +859,48 @@ components:
           type: ["string", "null"]
         theme:
           type: string
+
+    UpdateMyStoreBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+        whatsappNumber:
+          type: string
+        currency:
+          type: string
+        logoUrl:
+          type: ["string", "null"]
+        bannerUrl:
+          type: ["string", "null"]
+        theme:
+          type: string
+
+    CreateStoreBody:
+      type: object
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: ["string", "null"]
+        whatsappNumber:
+          type: string
+        currency:
+          type: string
+        logoUrl:
+          type: ["string", "null"]
+        bannerUrl:
+          type: ["string", "null"]
+        theme:
+          type: string
+      required:
+        - name
+        - slug
+        - whatsappNumber
 
     GenerateStoreBody:
       type: object
@@ -619,30 +926,22 @@ components:
         sampleProducts:
           type: array
           items:
-            $ref: "#/components/schemas/SampleProduct"
+            type: object
+            properties:
+              name:
+                type: string
+              price:
+                type: number
+              category:
+                type: string
+              description:
+                type: string
       required:
         - name
         - slug
         - description
         - categories
         - sampleProducts
-
-    SampleProduct:
-      type: object
-      properties:
-        name:
-          type: string
-        price:
-          type: number
-        category:
-          type: string
-        description:
-          type: string
-      required:
-        - name
-        - price
-        - category
-        - description
 
     Product:
       type: object
@@ -679,6 +978,11 @@ components:
         - isAvailable
         - createdAt
         - updatedAt
+
+    ProductList:
+      type: array
+      items:
+        $ref: "#/components/schemas/Product"
 
     CreateProductBody:
       type: object
@@ -737,6 +1041,11 @@ components:
         - name
         - createdAt
 
+    CategoryList:
+      type: array
+      items:
+        $ref: "#/components/schemas/Category"
+
     CreateCategoryBody:
       type: object
       properties:
@@ -744,6 +1053,23 @@ components:
           type: string
       required:
         - name
+
+    OrderItem:
+      type: object
+      properties:
+        productId:
+          type: integer
+        productName:
+          type: string
+        price:
+          type: number
+        quantity:
+          type: integer
+      required:
+        - productId
+        - productName
+        - price
+        - quantity
 
     Order:
       type: object
@@ -782,22 +1108,10 @@ components:
         - createdAt
         - updatedAt
 
-    OrderItem:
-      type: object
-      properties:
-        productId:
-          type: integer
-        productName:
-          type: string
-        price:
-          type: number
-        quantity:
-          type: integer
-      required:
-        - productId
-        - productName
-        - price
-        - quantity
+    OrderList:
+      type: array
+      items:
+        $ref: "#/components/schemas/Order"
 
     CreateOrderBody:
       type: object
@@ -872,3 +1186,450 @@ components:
         - productName
         - totalOrders
         - totalRevenue
+
+    # ─── Subscriptions ───────────────────────────────────────────────────────
+    Subscription:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: string
+        plan:
+          type: string
+        status:
+          type: string
+        currentPeriodStart:
+          type: ["string", "null"]
+          format: date-time
+        currentPeriodEnd:
+          type: ["string", "null"]
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - plan
+        - status
+        - createdAt
+        - updatedAt
+
+    PlanInfo:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        price:
+          type: number
+        currency:
+          type: string
+        productLimit:
+          type: integer
+        orderLimit:
+          type: integer
+        storeLimit:
+          type: integer
+        features:
+          type: array
+          items:
+            type: string
+      required:
+        - id
+        - name
+        - price
+        - currency
+        - productLimit
+        - orderLimit
+        - storeLimit
+        - features
+
+    UpgradePlanBody:
+      type: object
+      properties:
+        plan:
+          type: string
+      required:
+        - plan
+
+    UsageLimits:
+      type: object
+      properties:
+        plan:
+          type: string
+        products:
+          type: object
+          properties:
+            used:
+              type: integer
+            limit:
+              type: integer
+          required: [used, limit]
+        orders:
+          type: object
+          properties:
+            used:
+              type: integer
+            limit:
+              type: integer
+          required: [used, limit]
+        stores:
+          type: object
+          properties:
+            used:
+              type: integer
+            limit:
+              type: integer
+          required: [used, limit]
+      required:
+        - plan
+        - products
+        - orders
+        - stores
+
+    # ─── AI ──────────────────────────────────────────────────────────────────
+    GenerateDescriptionBody:
+      type: object
+      properties:
+        productName:
+          type: string
+        category:
+          type: ["string", "null"]
+        keywords:
+          type: ["string", "null"]
+        tone:
+          type: string
+          enum: [professional, casual, luxury, fun]
+      required:
+        - productName
+
+    GenerateDescriptionResponse:
+      type: object
+      properties:
+        description:
+          type: string
+        shortDescription:
+          type: string
+      required:
+        - description
+        - shortDescription
+
+    PricingSuggestionBody:
+      type: object
+      properties:
+        productName:
+          type: string
+        category:
+          type: ["string", "null"]
+        description:
+          type: ["string", "null"]
+        currency:
+          type: string
+      required:
+        - productName
+        - currency
+
+    PricingSuggestionResponse:
+      type: object
+      properties:
+        suggestedPrice:
+          type: number
+        priceRange:
+          type: object
+          properties:
+            min:
+              type: number
+            max:
+              type: number
+          required: [min, max]
+        reasoning:
+          type: string
+      required:
+        - suggestedPrice
+        - priceRange
+        - reasoning
+
+    EnhanceImageBody:
+      type: object
+      properties:
+        productName:
+          type: string
+        category:
+          type: ["string", "null"]
+        style:
+          type: string
+          enum: [clean_white, lifestyle, studio, minimal]
+      required:
+        - productName
+
+    EnhanceImageResponse:
+      type: object
+      properties:
+        imageUrl:
+          type: string
+        b64_json:
+          type: string
+      required:
+        - imageUrl
+        - b64_json
+
+    # ─── Admin ────────────────────────────────────────────────────────────────
+    AdminStats:
+      type: object
+      properties:
+        totalStores:
+          type: integer
+        totalProducts:
+          type: integer
+        totalOrders:
+          type: integer
+        totalRevenue:
+          type: number
+        freeUsers:
+          type: integer
+        proUsers:
+          type: integer
+        businessUsers:
+          type: integer
+        newStoresThisMonth:
+          type: integer
+        newOrdersThisMonth:
+          type: integer
+      required:
+        - totalStores
+        - totalProducts
+        - totalOrders
+        - totalRevenue
+        - freeUsers
+        - proUsers
+        - businessUsers
+        - newStoresThisMonth
+        - newOrdersThisMonth
+
+    AdminStoreItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: string
+        name:
+          type: string
+        slug:
+          type: string
+        whatsappNumber:
+          type: string
+        plan:
+          type: string
+        productCount:
+          type: integer
+        orderCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - name
+        - slug
+        - whatsappNumber
+        - plan
+        - productCount
+        - orderCount
+        - createdAt
+
+    AdminStoreList:
+      type: object
+      properties:
+        stores:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminStoreItem"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+      required:
+        - stores
+        - total
+        - page
+        - limit
+
+    AdminUpdatePlanBody:
+      type: object
+      properties:
+        plan:
+          type: string
+      required:
+        - plan
+
+    AdminAnalytics:
+      type: object
+      properties:
+        revenueByDay:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+              revenue:
+                type: number
+              orders:
+                type: integer
+            required: [date, revenue, orders]
+        topStores:
+          type: array
+          items:
+            type: object
+            properties:
+              storeId:
+                type: integer
+              storeName:
+                type: string
+              revenue:
+                type: number
+              orders:
+                type: integer
+            required: [storeId, storeName, revenue, orders]
+        planDistribution:
+          type: object
+          properties:
+            free:
+              type: integer
+            pro:
+              type: integer
+            business:
+              type: integer
+          required: [free, pro, business]
+      required:
+        - revenueByDay
+        - topStores
+        - planDistribution
+
+    # ─── Referrals ────────────────────────────────────────────────────────────
+    ReferralCode:
+      type: object
+      properties:
+        code:
+          type: string
+        totalReferrals:
+          type: integer
+        successfulReferrals:
+          type: integer
+        referralUrl:
+          type: string
+      required:
+        - code
+        - totalReferrals
+        - successfulReferrals
+        - referralUrl
+
+    ReferralStats:
+      type: object
+      properties:
+        code:
+          type: string
+        totalReferrals:
+          type: integer
+        successfulReferrals:
+          type: integer
+        pendingReferrals:
+          type: integer
+        rewardsPending:
+          type: integer
+      required:
+        - code
+        - totalReferrals
+        - successfulReferrals
+        - pendingReferrals
+        - rewardsPending
+
+    ApplyReferralBody:
+      type: object
+      properties:
+        code:
+          type: string
+      required:
+        - code
+
+    ApplyReferralResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        reward:
+          type: ["string", "null"]
+      required:
+        - success
+        - message
+
+    # ─── Growth ───────────────────────────────────────────────────────────────
+    QrCodeResponse:
+      type: object
+      properties:
+        svg:
+          type: string
+        url:
+          type: string
+      required:
+        - svg
+        - url
+
+    ShareLinkResponse:
+      type: object
+      properties:
+        url:
+          type: string
+        whatsappUrl:
+          type: string
+        twitterUrl:
+          type: string
+        facebookUrl:
+          type: string
+      required:
+        - url
+        - whatsappUrl
+        - twitterUrl
+        - facebookUrl
+
+    BroadcastBody:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [promotion, new_product, announcement]
+        message:
+          type: string
+        productIds:
+          type: array
+          items:
+            type: integer
+      required:
+        - type
+        - message
+
+    BroadcastResponse:
+      type: object
+      properties:
+        whatsappUrl:
+          type: string
+        message:
+          type: string
+        characterCount:
+          type: integer
+      required:
+        - whatsappUrl
+        - message
+        - characterCount

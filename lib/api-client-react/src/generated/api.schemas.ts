@@ -45,16 +45,8 @@ export interface PublicStore {
   /** @nullable */
   bannerUrl?: string | null;
   theme: string;
-}
-
-export interface CreateStoreBody {
-  name: string;
-  slug: string;
-  /** @nullable */
-  description?: string | null;
-  whatsappNumber: string;
-  currency?: string;
-  theme?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface UpdateStoreBody {
@@ -70,23 +62,50 @@ export interface UpdateStoreBody {
   theme?: string;
 }
 
+export interface UpdateMyStoreBody {
+  name?: string;
+  /** @nullable */
+  description?: string | null;
+  whatsappNumber?: string;
+  currency?: string;
+  /** @nullable */
+  logoUrl?: string | null;
+  /** @nullable */
+  bannerUrl?: string | null;
+  theme?: string;
+}
+
+export interface CreateStoreBody {
+  name: string;
+  slug: string;
+  /** @nullable */
+  description?: string | null;
+  whatsappNumber: string;
+  currency?: string;
+  /** @nullable */
+  logoUrl?: string | null;
+  /** @nullable */
+  bannerUrl?: string | null;
+  theme?: string;
+}
+
 export interface GenerateStoreBody {
   description: string;
 }
 
-export interface SampleProduct {
-  name: string;
-  price: number;
-  category: string;
-  description: string;
-}
+export type GeneratedStoreConfigSampleProductsItem = {
+  name?: string;
+  price?: number;
+  category?: string;
+  description?: string;
+};
 
 export interface GeneratedStoreConfig {
   name: string;
   slug: string;
   description: string;
   categories: string[];
-  sampleProducts: SampleProduct[];
+  sampleProducts: GeneratedStoreConfigSampleProductsItem[];
 }
 
 export interface Product {
@@ -106,6 +125,8 @@ export interface Product {
   createdAt: string;
   updatedAt: string;
 }
+
+export type ProductList = Product[];
 
 export interface CreateProductBody {
   name: string;
@@ -142,6 +163,8 @@ export interface Category {
   createdAt: string;
 }
 
+export type CategoryList = Category[];
+
 export interface CreateCategoryBody {
   name: string;
 }
@@ -167,6 +190,8 @@ export interface Order {
   createdAt: string;
   updatedAt: string;
 }
+
+export type OrderList = Order[];
 
 export interface CreateOrderBody {
   storeId: number;
@@ -200,16 +225,257 @@ export interface TopProduct {
   totalRevenue: number;
 }
 
+export interface Subscription {
+  id: number;
+  userId: string;
+  plan: string;
+  status: string;
+  /** @nullable */
+  currentPeriodStart?: string | null;
+  /** @nullable */
+  currentPeriodEnd?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PlanInfo {
+  id: string;
+  name: string;
+  price: number;
+  currency: string;
+  productLimit: number;
+  orderLimit: number;
+  storeLimit: number;
+  features: string[];
+}
+
+export interface UpgradePlanBody {
+  plan: string;
+}
+
+export type UsageLimitsProducts = {
+  used: number;
+  limit: number;
+};
+
+export type UsageLimitsOrders = {
+  used: number;
+  limit: number;
+};
+
+export type UsageLimitsStores = {
+  used: number;
+  limit: number;
+};
+
+export interface UsageLimits {
+  plan: string;
+  products: UsageLimitsProducts;
+  orders: UsageLimitsOrders;
+  stores: UsageLimitsStores;
+}
+
+export type GenerateDescriptionBodyTone =
+  (typeof GenerateDescriptionBodyTone)[keyof typeof GenerateDescriptionBodyTone];
+
+export const GenerateDescriptionBodyTone = {
+  professional: "professional",
+  casual: "casual",
+  luxury: "luxury",
+  fun: "fun",
+} as const;
+
+export interface GenerateDescriptionBody {
+  productName: string;
+  /** @nullable */
+  category?: string | null;
+  /** @nullable */
+  keywords?: string | null;
+  tone?: GenerateDescriptionBodyTone;
+}
+
+export interface GenerateDescriptionResponse {
+  description: string;
+  shortDescription: string;
+}
+
+export interface PricingSuggestionBody {
+  productName: string;
+  /** @nullable */
+  category?: string | null;
+  /** @nullable */
+  description?: string | null;
+  currency: string;
+}
+
+export type PricingSuggestionResponsePriceRange = {
+  min: number;
+  max: number;
+};
+
+export interface PricingSuggestionResponse {
+  suggestedPrice: number;
+  priceRange: PricingSuggestionResponsePriceRange;
+  reasoning: string;
+}
+
+export type EnhanceImageBodyStyle =
+  (typeof EnhanceImageBodyStyle)[keyof typeof EnhanceImageBodyStyle];
+
+export const EnhanceImageBodyStyle = {
+  clean_white: "clean_white",
+  lifestyle: "lifestyle",
+  studio: "studio",
+  minimal: "minimal",
+} as const;
+
+export interface EnhanceImageBody {
+  productName: string;
+  /** @nullable */
+  category?: string | null;
+  style?: EnhanceImageBodyStyle;
+}
+
+export interface EnhanceImageResponse {
+  imageUrl: string;
+  b64_json: string;
+}
+
+export interface AdminStats {
+  totalStores: number;
+  totalProducts: number;
+  totalOrders: number;
+  totalRevenue: number;
+  freeUsers: number;
+  proUsers: number;
+  businessUsers: number;
+  newStoresThisMonth: number;
+  newOrdersThisMonth: number;
+}
+
+export interface AdminStoreItem {
+  id: number;
+  userId: string;
+  name: string;
+  slug: string;
+  whatsappNumber: string;
+  plan: string;
+  productCount: number;
+  orderCount: number;
+  createdAt: string;
+}
+
+export interface AdminStoreList {
+  stores: AdminStoreItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface AdminUpdatePlanBody {
+  plan: string;
+}
+
+export type AdminAnalyticsRevenueByDayItem = {
+  date: string;
+  revenue: number;
+  orders: number;
+};
+
+export type AdminAnalyticsTopStoresItem = {
+  storeId: number;
+  storeName: string;
+  revenue: number;
+  orders: number;
+};
+
+export type AdminAnalyticsPlanDistribution = {
+  free: number;
+  pro: number;
+  business: number;
+};
+
+export interface AdminAnalytics {
+  revenueByDay: AdminAnalyticsRevenueByDayItem[];
+  topStores: AdminAnalyticsTopStoresItem[];
+  planDistribution: AdminAnalyticsPlanDistribution;
+}
+
+export interface ReferralCode {
+  code: string;
+  totalReferrals: number;
+  successfulReferrals: number;
+  referralUrl: string;
+}
+
+export interface ReferralStats {
+  code: string;
+  totalReferrals: number;
+  successfulReferrals: number;
+  pendingReferrals: number;
+  rewardsPending: number;
+}
+
+export interface ApplyReferralBody {
+  code: string;
+}
+
+export interface ApplyReferralResponse {
+  success: boolean;
+  message: string;
+  /** @nullable */
+  reward?: string | null;
+}
+
+export interface QrCodeResponse {
+  svg: string;
+  url: string;
+}
+
+export interface ShareLinkResponse {
+  url: string;
+  whatsappUrl: string;
+  twitterUrl: string;
+  facebookUrl: string;
+}
+
+export type BroadcastBodyType =
+  (typeof BroadcastBodyType)[keyof typeof BroadcastBodyType];
+
+export const BroadcastBodyType = {
+  promotion: "promotion",
+  new_product: "new_product",
+  announcement: "announcement",
+} as const;
+
+export interface BroadcastBody {
+  type: BroadcastBodyType;
+  message: string;
+  productIds?: number[];
+}
+
+export interface BroadcastResponse {
+  whatsappUrl: string;
+  message: string;
+  characterCount: number;
+}
+
 export type ListProductsParams = {
-  category?: string;
   search?: string;
+  category?: string;
 };
 
 export type ListPublicProductsParams = {
-  category?: string;
   search?: string;
+  category?: string;
 };
 
 export type ListOrdersParams = {
   status?: string;
+};
+
+export type AdminListStoresParams = {
+  page?: number;
+  limit?: number;
+  search?: string;
 };
